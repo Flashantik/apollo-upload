@@ -1,0 +1,18 @@
+<svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_d)">
+<path d="M15 35C15 23.9543 23.9543 15 35 15V15C46.0457 15 55 23.9543 55 35V35C55 46.0457 46.0457 55 35 55V55C23.9543 55 15 46.0457 15 35V35Z" fill="#6DB624"/>
+<path d="M36.4922 38.1797C39.6562 38.1797 42 35.9531 42 32.6328C42 29.3125 39.6562 27.125 36.4922 27.125H29.9688C29.6953 27.125 29.5 27.3594 29.5 27.5938V36.0312H27.4688C27.1953 36.0312 27 36.2656 27 36.5V37.7109C27 37.9844 27.1953 38.1797 27.4688 38.1797H29.5V39.625H27.4688C27.1953 39.625 27 39.8594 27 40.0938V41.0312C27 41.3047 27.1953 41.5 27.4688 41.5H29.5V44.1562C29.5 44.4297 29.6953 44.625 29.9688 44.625H31.5312C31.7656 44.625 32 44.4297 32 44.1562V41.5H39.0312C39.2656 41.5 39.5 41.3047 39.5 41.0312V40.0938C39.5 39.8594 39.2656 39.625 39.0312 39.625H32V38.1797H36.4922ZM32 29.2734H36.1016C38.1719 29.2734 39.4609 30.5234 39.4609 32.6328C39.4609 34.7422 38.1719 36.0312 36.0625 36.0312H32V29.2734Z" fill="white"/>
+<path d="M35 52C25.6112 52 18 44.3888 18 35H12C12 47.7025 22.2975 58 35 58V52ZM52 35C52 44.3888 44.3888 52 35 52V58C47.7025 58 58 47.7025 58 35H52ZM35 18C44.3888 18 52 25.6112 52 35H58C58 22.2975 47.7025 12 35 12V18ZM35 12C22.2975 12 12 22.2975 12 35H18C18 25.6112 25.6112 18 35 18V12Z" fill="white"/>
+</g>
+<defs>
+<filter id="filter0_d" x="0" y="0" width="70" height="70" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="7.5"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+</filter>
+</defs>
+</svg>
