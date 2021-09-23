@@ -117,7 +117,7 @@ import { v4 as UUIDv4 } from 'uuid'
   file:removed: File
   error:fileExtension
   error:maxFilesReached
-  
+
 */
 import compressImage from '~/mixins/compressImage'
 const toBase64 = File =>
@@ -288,8 +288,8 @@ export default {
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation uploadFile($file: Upload!) {
-              imageUpload(file: $file) {
+            mutation imageUpload($file: Upload!) {
+              imageUpload(file: $file, bucket: "newruvita") {
                 url
               }
             }

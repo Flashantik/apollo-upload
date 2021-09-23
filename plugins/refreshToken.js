@@ -3,13 +3,13 @@ import jwtDecode from 'jwt-decode'
 let hasActiveRefreshSession = false
 export default ({ app, store }) => {
   const refreshToken = app.$cookies.get('refresh', {
-    
+
   })
   const promise = new Promise((resolve, reject) => {
     if (!hasActiveRefreshSession) {
       if (refreshToken) {
         hasActiveRefreshSession = true
-        fetch("https://newadapi.ruvita.ru/graphql", {
+        fetch("http://localhost:4000/graphql", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -36,11 +36,11 @@ export default ({ app, store }) => {
                 store.commit('user/serv_user', null)
                 app.$cookies.remove('apollo-token', {
                   path: '/',
-                  
+
                 })
                 app.$cookies.remove('refresh', {
                   path: '/',
-                  
+
                 })
               } else {
                 // delete user.refresh_token
@@ -57,12 +57,12 @@ export default ({ app, store }) => {
                 app.$cookies.set('apollo-token', RefreshLogin.jwt_token, {
                   expires: new Date(+(decodedToken.exp + '000')),
                   path: '/',
-                  
+
                 })
                 app.$cookies.set('refresh', RefreshLogin.jwt_refresh_token, {
                   expires: new Date(+(decodedRefreshToken.exp + '000')),
                   path: '/',
-                  
+
                 })
                 resolve(refreshJson)
               }
@@ -74,11 +74,11 @@ export default ({ app, store }) => {
             reject(error)
             app.$cookies.remove('refresh', {
               path: '/',
-              
+
             })
             app.$cookies.remove('apollo-token', {
               path: '/',
-              
+
             })
           })
       } else {

@@ -75,7 +75,7 @@ export default function(context) {
   //   fetch: customFetch
   // })
   const uploadLink = createUploadLink({
-    uri: "https://newadapi.ruvita.ru/graphql",
+    uri: "https://newapi.ruvita.ru/graphql",
     fetch: customFetch
   })
   return {
