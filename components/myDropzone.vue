@@ -6,13 +6,17 @@
       type="file"
       :accept="accept"
       :disabled="disabled"
-      @input="compressMyImage($event.target.files)"
+      @input="addFiles($event.target.files)"
     />
     <div
       ref="MyDropzone"
       class="MyDropzone__addFile d-flex align-center justify-center h-100"
       :style="{
         'justify-content': value && value.length == 0 ? 'center' : ''
+      }"
+      :class="{
+        success: state === true,
+        error: state === false
       }"
       @click="$refs.inputFile.click()"
     >
@@ -25,7 +29,11 @@
         }"
         class="MyDropzone__file"
       >
-        <div class="MyDropzone__fileActions">
+      <div v-if="file.upload.isLoading" style="position: absolute;"> 
+        <app-progress-circle  fill="black" :progress="file.upload.progress" :radius="70" :stroke="10"/>
+      </div>
+
+        <div v-if="!file.progress" class="MyDropzone__fileActions">
           <button
             v-if="editable"
             :disabled="disabled"
@@ -57,7 +65,7 @@
     </div>
     <div class="field__help">
       <div>
-        <div class="error--text">
+        <div v-if="state === false" class="error--text">
           <slot name="errorMessage" />
         </div>
         <transition name="slide-y">
@@ -101,13 +109,16 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+  <v-btn @click="uploadQueue()">Загрузить</v-btn>
   </div>
 </template>
 
 <script>
+
 import gql from 'graphql-tag'
 import { v4 as UUIDv4 } from 'uuid'
-
+import vuelidate from '~/mixins/vuelidate'
+import progress from '~/components/progress'
 /*
   events
   ______
@@ -119,7 +130,6 @@ import { v4 as UUIDv4 } from 'uuid'
   error:maxFilesReached
 
 */
-import compressImage from '~/mixins/compressImage'
 const toBase64 = File =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -128,7 +138,8 @@ const toBase64 = File =>
     reader.onerror = error => reject(error)
   })
 export default {
-  mixins: [compressImage],
+  components:{appProgressCircle: progress},
+  mixins: [vuelidate],
   props: {
     value: {
       type: Array,
@@ -182,6 +193,11 @@ export default {
     }
   },
   computed: {
+    queue(){
+      return this.value.filter((file)=> {
+        return !file.upload?.isUploaded
+      })
+    },
     multiple() {
       return this.maxFiles > 1
     },
@@ -228,7 +244,6 @@ export default {
       'drop'
     ].forEach(
       function(evt) {
-        // eslint-disable-next-line no-unused-expressions
         this.$refs.MyDropzone?.addEventListener(
           evt,
           function(e) {
@@ -239,77 +254,46 @@ export default {
         )
       }.bind(this)
     )
-    // eslint-disable-next-line no-unused-expressions
     this.$refs.MyDropzone?.addEventListener('drop', async e => {
-      for (const file of e.dataTransfer.files) {
-        await this.compressMyImage(file)
-      }
+      await this.addFiles(e.dataTransfer.files)
     })
   },
   methods: {
-    compressMyImage(files) {
-      files = Array.from(files)
+    uploadQueue() {
       this.$nuxt.$loading.start()
-      files.forEach(file => {
-        const descriptor = { file, id: UUIDv4(), error: false }
-        this.upload(descriptor)
-        return descriptor
-      })
-
-      // this.compressImage(file).then(compressedFile => {
-      //   // const descriptor = { file: compressedFile, id: UUIDv4(), error: false }
-      //   const myFile = new File([compressedFile], file.name)
-      //   console.log(myFile)
-      //   this.$apollo
-      //     .mutate({
-      //       mutation: gql`
-      //         mutation imageUpload($file: Upload!) {
-      //           imageUpload(file: $file) {
-      //             url
-      //           }
-      //         }
-      //       `,
-      //       variables: {
-      //         file: myFile
-      //       }
-      //     })
-      //     .then(({ data: { imageUpload } }) => {
-      //       console.log(imageUpload)
-      //     })
-      //     .finally(() => {
-      //       this.$nuxt.$loading.finish()
-      //     })
-
-      //   // this.addFile(data)
-      // })
-    },
-    upload(descriptor) {
-      console.log(descriptor, descriptor.file)
-      this.$apollo
-        .mutate({
-          mutation: gql`
-            mutation imageUpload($file: Upload!) {
-              imageUpload(file: $file, bucket: "newruvita") {
-                url
+      Promise.all(
+        this.queue.map(file => {
+          file.upload.isLoading = true
+          return this.$apollo.mutate({
+            mutation: gql`
+              mutation imageUpload($file: Upload!) {
+                imageUpload(file: $file, bucket: "newruvita") {
+                  url
+                }
               }
+            `,
+            context: {
+              fetchOptions: {
+                useUpload: true,
+                onProgress: (ev) => {
+                  file.upload.progress = Math.round((ev.loaded / ev.total) * 100)
+                },
+              }
+            },
+            variables: {
+              file: file.file
             }
-          `,
-          variables: {
-            file: descriptor.file
-          }
-          // update: (store, { data: { imageUpload } }) => {
-          //   const query = {
-          //     query: getFiles,
-          //     variables: { bucket: this.bucket }
-          //   }
-          //   const cache = store.readQuery(query)
-          //   cache.files.unshift(imageUpload)
-          //   store.writeQuery({ ...query, data: cache })
-          // }
+          }).then(()=> {
+          this.$toast.success(`Файл: ${file.file.name} загружен!`)
+          this.$set(file.upload, 'isUploaded', true)
+          }).catch((error)=> {
+            file.upload.error = error
+          }).finally(()=> {file.upload.isLoading = false})
         })
-        .catch(() => {
-          descriptor.error = true
-        })
+      ).finally(() => {
+        this.$nuxt.$loading.finish()
+      }
+      )
     },
     openDialog() {
       this.cropperDialog = true
@@ -336,40 +320,48 @@ export default {
       this.$emit('file:added', newArray[newArray?.length - 1])
       return true
     },
-    async addFile(file) {
-      if (file) {
-        // проверка на количество файлов
-        if (this.value?.length < this.maxFiles) {
-          this.$emit('file:removed')
-        }
-        if (
-          new RegExp(
-            '(' +
-              this.accept
-                .replace(/\s/g, '')
-                .replace(/,/g, '|')
-                .replace(/\*/g, '.*')
-                .replace(/\\./g, '\\.') +
-              ')$'
-          ).test(file.name)
-        ) {
-          // проверка на расширение файла
-          file.base64 = await toBase64(file)
-          file = { ...file, file_name: file.name, size: file.size }
-          if (!this.croppImage) {
-            return this.addImageToArray(file)
-          } else {
-            this.imageToCropp = file
-            this.croppKey = this.value.length
-            this.$nextTick(() => {
-              this.cropperDialog = true
-            })
+    addFiles(files) {
+      files.forEach(async file => {
+         const myFile = JSON.parse(JSON.stringify(file))
+        if (file) {
+          if (this.value?.length < this.maxFiles) {
+            this.$emit('file:removed')
           }
-        } else {
-          this.$emit('error:fileExtension')
-          this.$toast.error('Неверный формат файла')
+          if (
+            new RegExp(
+              '(' +
+              this.accept
+              .replace(/\s/g, '')
+              .replace(/,/g, '|')
+              .replace(/\*/g, '.*')
+              .replace(/\\./g, '\\.') +
+              ')$'
+            ).test(file.name)
+          ) {
+            // проверка на расширение файла
+            myFile.base64 = await toBase64(file)
+            myFile.file = file
+            myFile.upload = {
+              id: UUIDv4(),
+              progress: 0,
+              isLoading: false,
+              error: null
+            }
+            if (!this.croppImage) {
+              return this.addImageToArray(myFile)
+            } else {
+              this.imageToCropp = myFile
+              this.croppKey = this.value.length
+              this.$nextTick(() => {
+                this.cropperDialog = true
+              })
+            }
+          } else {
+            this.$emit('error:fileExtension')
+            this.$toast.error('Неверный формат файла')
+          }
         }
-      }
+      })
     },
     removeFile(fileKey) {
       const newArray = [...this.value]
@@ -437,7 +429,10 @@ export default {
         max-width: 100%;
         height: auto;
       }
-      &:hover .MyDropzone__fileActions {
+      .progressCircle{
+        opacity: 0.5;
+      }
+      &:hover .MyDropzone__fileActions, &:hover .progressCircle {
         opacity: 1;
       }
       .MyDropzone__status {
@@ -475,4 +470,6 @@ export default {
     }
   }
 }
+
 </style>
+

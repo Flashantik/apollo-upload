@@ -3,7 +3,9 @@ import { onError } from 'apollo-link-error'
 import { createUploadLink } from 'apollo-upload-client'
 import { ApolloLink } from 'apollo-link'
 import cookie from 'cookie'
+import { uploadFetch } from "./uploadHelper"
 import refreshToken from '~/plugins/refreshToken'
+
 
 export default function(context) {
   const { app, req, store } = context
@@ -42,6 +44,7 @@ export default function(context) {
           refreshToken({ app: context.app, store: context.store })
         } else {
           const errorText = 'Произошла сетевая ошибка. Сервер недоступен'
+          console.error(networkError.message)
           if (
             context.app?.$toast &&
             !context.app?.$toast?.toasts?.some(
@@ -68,15 +71,15 @@ export default function(context) {
         activeRefresh = null
       }
     }
-    return fetch(uri, options)
+    if (options.useUpload) {
+      return uploadFetch(uri, options)
+    }
+    return fetch(uri, options);
   }
-  // const link = createHttpLink({
-  //   uri: "https://newadapi.ruvita.ru/graphql",
-  //   fetch: customFetch
-  // })
+  
   const uploadLink = createUploadLink({
     uri: "https://newapi.ruvita.ru/graphql",
-    fetch: customFetch
+    fetch: typeof window === 'undefined' ? global.fetch : customFetch
   })
   return {
     link: ApolloLink.from([errorLink, uploadLink]),
