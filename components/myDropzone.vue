@@ -31,10 +31,10 @@
             :disabled="disabled"
             @click.stop.prevent="$emit('file:edit', { file, index: fileKey })"
           >
-            <i class="mdi mdi-edit-pencil" />
+            <i class="mdi mdi-edit-pencil"/>
           </button>
           <button @click.stop.prevent="removeFile(fileKey)">
-            <i class="mdi mdi-delete" :disabled="disabled" />
+            <i class="mdi mdi-delete" :disabled="disabled"/>
           </button>
         </div>
         <div v-if="file.status" class="MyDropzone__status">
@@ -58,7 +58,7 @@
     <div class="field__help">
       <div>
         <div class="error--text">
-          <slot name="errorMessage" />
+          <slot name="errorMessage"/>
         </div>
         <transition name="slide-y">
           <div class="input-content__hint">
@@ -89,7 +89,7 @@
             v-model="imageToCropp"
             :aspect-ratio="aspectRatio"
           ></my-crooper>
-          <slot name="cropper" />
+          <slot name="cropper"/>
         </v-card-text>
         <v-card-actions>
           <v-btn class="moderateBtn" text @click="croppend(imageToCropp)">
@@ -106,7 +106,7 @@
 
 <script>
 import gql from 'graphql-tag'
-import { v4 as UUIDv4 } from 'uuid'
+import {v4 as UUIDv4} from 'uuid'
 
 /*
   events
@@ -120,6 +120,7 @@ import { v4 as UUIDv4 } from 'uuid'
 
 */
 import compressImage from '~/mixins/compressImage'
+
 const toBase64 = File =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -186,7 +187,7 @@ export default {
       return this.maxFiles > 1
     },
     fieldType() {
-      const { type, stateHide } = this
+      const {type, stateHide} = this
       if (type === 'password' && !stateHide) {
         return 'text'
       }
@@ -227,11 +228,11 @@ export default {
       'dragleave',
       'drop'
     ].forEach(
-      function(evt) {
+      function (evt) {
         // eslint-disable-next-line no-unused-expressions
         this.$refs.MyDropzone?.addEventListener(
           evt,
-          function(e) {
+          function (e) {
             e.preventDefault()
             e.stopPropagation()
           },
@@ -251,7 +252,7 @@ export default {
       files = Array.from(files)
       this.$nuxt.$loading.start()
       files.forEach(file => {
-        const descriptor = { file, id: UUIDv4(), error: false }
+        const descriptor = {file, id: UUIDv4(), error: false}
         this.upload(descriptor)
         return descriptor
       })
@@ -284,13 +285,14 @@ export default {
       // })
     },
     upload(descriptor) {
-      console.log(descriptor, descriptor.file)
       this.$apollo
         .mutate({
           mutation: gql`
             mutation imageUpload($file: Upload!) {
-              imageUpload(file: $file, bucket: "newruvita") {
+              imageUpload(file: $file, bucket: "products") {
                 url
+                key
+                bucket
               }
             }
           `,
@@ -345,17 +347,17 @@ export default {
         if (
           new RegExp(
             '(' +
-              this.accept
-                .replace(/\s/g, '')
-                .replace(/,/g, '|')
-                .replace(/\*/g, '.*')
-                .replace(/\\./g, '\\.') +
-              ')$'
+            this.accept
+              .replace(/\s/g, '')
+              .replace(/,/g, '|')
+              .replace(/\*/g, '.*')
+              .replace(/\\./g, '\\.') +
+            ')$'
           ).test(file.name)
         ) {
           // проверка на расширение файла
           file.base64 = await toBase64(file)
-          file = { ...file, file_name: file.name, size: file.size }
+          file = {...file, file_name: file.name, size: file.size}
           if (!this.croppImage) {
             return this.addImageToArray(file)
           } else {
@@ -387,92 +389,115 @@ export default {
 
 <style lang="scss">
 .MyDropzone {
-  .d-none {
-    display: none;
-  }
-  display: inline-block;
-  .MyDropzone__addFile {
-    position: relative;
-    padding: 20px;
-    border: 1px dashed #b3bcc7;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: center;
-    transition: 300ms;
-    &:hover {
-      border-color: #0066c0;
-    }
-    cursor: pointer;
-    .MyDropzone__plus {
-      border: 1px dashed #b3bcc7;
-      width: 80px;
-      height: 80px;
-      position: relative;
-      transition: 300ms;
-      &:before,
-      &:after {
-        content: '';
-        display: block;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 30px;
-        height: 4px;
-        background: #b3bcc7;
-        transition: 300ms;
-      }
-      &:after {
-        transform: translate(-50%, -50%) rotate(90deg);
-      }
-    }
-    .MyDropzone__file {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: initial;
-      img {
-        max-width: 100%;
-        height: auto;
-      }
-      &:hover .MyDropzone__fileActions {
-        opacity: 1;
-      }
-      .MyDropzone__status {
-        position: absolute;
-        height: 25px;
-        border-radius: 50px;
-        padding: 8px;
-        text-align: center;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        right: 10px;
-        top: 10px;
-      }
-      .MyDropzone__fileActions {
-        position: absolute;
-        right: 5px;
-        bottom: 5px;
-        opacity: 0.5;
-        transition: opacity 0.3s ease;
-        button {
-          border: 0;
-          width: 30px;
-          height: 30px;
-          background-color: #ff4f36;
-          border-radius: 3px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: 4px;
-          color: #ffffff;
-        }
-      }
-    }
-  }
+
+.d-none {
+  display: none;
+}
+
+display: inline-block
+
+;
+.MyDropzone__addFile {
+  position: relative;
+  padding: 20px;
+  border: 1px dashed #b3bcc7;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  transition: 300ms;
+
+&
+:hover {
+  border-color: #0066c0;
+}
+
+cursor: pointer
+
+;
+.MyDropzone__plus {
+  border: 1px dashed #b3bcc7;
+  width: 80px;
+  height: 80px;
+  position: relative;
+  transition: 300ms;
+
+&
+:before,
+
+&
+:after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 4px;
+  background: #b3bcc7;
+  transition: 300ms;
+}
+
+&
+:after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+}
+.MyDropzone__file {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: initial;
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+&
+:hover .MyDropzone__fileActions {
+  opacity: 1;
+}
+
+.MyDropzone__status {
+  position: absolute;
+  height: 25px;
+  border-radius: 50px;
+  padding: 8px;
+  text-align: center;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  right: 10px;
+  top: 10px;
+}
+
+.MyDropzone__fileActions {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+
+button {
+  border: 0;
+  width: 30px;
+  height: 30px;
+  background-color: #ff4f36;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+}
+}
+}
 }
 </style>
