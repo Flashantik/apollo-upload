@@ -1,9 +1,15 @@
 <template>
   <div>
-    <my-dropzone />
+    <my-dropzone v-model="files" />
   </div>
 </template>
 
 <script>
-export default {}
+export default {
+  data() {
+  return {
+    files: []
+  };
+}
+}
 </script>
