@@ -78,7 +78,7 @@ export default function(context) {
   }
 
   const uploadLink = createUploadLink({
-    uri: "http://localhost:4000/graphql",
+    uri: "https://newapi.ruvita.ru/graphql",
     fetch: typeof window === 'undefined' ? global.fetch : customFetch
   })
   return {
